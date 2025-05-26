@@ -22,11 +22,16 @@ class MainActivity : AppCompatActivity() {
         db.getCategoryDao()
     }
 
+    private val taskDao: TaskDao by lazy {
+        db.getTaskDao()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         insertDefaultCategory()
+        insertDefaultTask()
 
         val rvCategory = findViewById<RecyclerView>(R.id.rv_categories)
         val rvTask = findViewById<RecyclerView>(R.id.rv_tasks)
@@ -55,7 +60,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         rvCategory.adapter = categoryAdapter
-        categoryAdapter.submitList(categories)
+        getCategoriesFromDataBase(categoryAdapter)
 
         rvTask.adapter = taskAdapter
         taskAdapter.submitList(tasks)
@@ -71,6 +76,32 @@ class MainActivity : AppCompatActivity() {
 
         GlobalScope.launch(Dispatchers.IO) {
             categoryDao.insertAll(categoriesEntity)
+        }
+    }
+
+    private fun insertDefaultTask() {
+        val taskEntities = tasks.map {
+            TaskEntity(
+                name = it.name,
+                category = it.category
+            )
+        }
+        GlobalScope.launch(Dispatchers.IO) {
+            taskDao.insertAll(taskEntities)
+        }
+    }
+
+
+    private fun getCategoriesFromDataBase(adapter: CategoryListAdapter) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val categoriesFromDb: List<CategoryEntity> = categoryDao.getAll()
+            val categoriesUiData = categoriesFromDb.map {
+                CategoryUiData(
+                    it.name,
+                    it.isSelected
+                )
+            }
+            adapter.submitList(categoriesUiData)
         }
     }
 }
@@ -89,17 +120,17 @@ val categories = listOf(
         isSelected = false
     ),
     CategoryUiData(
-        name = "WELLNESS",
+        name= "WELLNESS",
         isSelected = false
     ),
     CategoryUiData(
-        name = "HOME",
+        name= "HOME",
         isSelected = false
     ),
     CategoryUiData(
-        name = "HEALTH",
+        name= "HEALTH",
         isSelected = false
-    ),
+    )
 )
 
 val tasks = listOf(
