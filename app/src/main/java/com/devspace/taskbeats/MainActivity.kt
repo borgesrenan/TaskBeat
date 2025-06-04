@@ -45,7 +45,10 @@ class MainActivity : AppCompatActivity() {
         categoryAdapter.setOnClickListener { selected ->
 
             if (selected.name == "+") {
-                Snackbar.make(rvCategory, "+ is selected", Snackbar.LENGTH_LONG).show()
+
+                val createCategoryBottomSheet = CreateCategoryBottomSheet()
+                createCategoryBottomSheet.show(supportFragmentManager, "createCategoryBottomSheet")
+
             } else {
                 val categoryTemp = categories.map { item ->
                     when {
@@ -106,8 +109,10 @@ class MainActivity : AppCompatActivity() {
                     category = it.category
                 )
             }
-            tasks = tasksUiData
-            adapter.submitList(tasksUiData)
+            GlobalScope.launch(Dispatchers.Main) {
+                tasks = tasksUiData
+                adapter.submitList(tasksUiData)
+            }
         }
     }
 }
